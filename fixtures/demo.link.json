@@ -1,0 +1,7 @@
+{
+  "tx_power_w": 2.0,
+  "tx_gain_dbi": 6.0,
+  "frequency_mhz": 2250.0,
+  "ebn0_db": 22.52,
+  "rationale": "Two watts into a 6 dBi patch at S-band gives 22.5 dB of Eb/N0 at 1 Mbps from 1695 km, well over the 12.6 dB needed, so a smaller transmitter would do; 2 W is the smallest common S-band module."
+}

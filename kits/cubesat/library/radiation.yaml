@@ -1,0 +1,16 @@
+# How to assess total ionizing dose, described by a person. No code and no data in here.
+# The data that varies lives in context/radiation.yaml.
+
+name: radiation
+rule_id: V-RAD
+
+intent: >
+  Every electronic part on a CubeSat must survive the mission's total ionizing dose with margin.
+
+# How an engineer does this by hand today. The agent turns the constants into parameters.
+process_example: |
+  1. Find the annual dose for the part's shielding thickness in the dose-depth table.
+     Interpolate linearly between the two nearest rows.
+  2. Multiply by the design life to get the mission dose.
+  3. Divide the part's rated tolerance by the mission dose. That ratio is the radiation design margin.
+  4. The part passes when the margin is at least 2, unless the program sets another value.

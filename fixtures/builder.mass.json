@@ -1,0 +1,47 @@
+{
+  "design_notes": "Method: apply a growth allowance to dry mass, chosen by design maturity. Add propellant. Compare with the launch limit.\nValid range: maturity levels named in the measures. An unknown level is an error.\nWhat varies per spacecraft: dry mass, propellant, maturity, and the launch limit.\nAssumption: propellant mass is known and takes no allowance.",
+  "terms": [
+    {
+      "name": "dry_mass_g",
+      "unit": "g",
+      "description": "Current best estimate of dry mass"
+    },
+    {
+      "name": "propellant_mass_g",
+      "unit": "g",
+      "description": "Loaded propellant mass"
+    },
+    {
+      "name": "maturity",
+      "unit": "name",
+      "description": "Design maturity level"
+    },
+    {
+      "name": "launch_limit_g",
+      "unit": "g",
+      "description": "Maximum mass the launch provider accepts"
+    },
+    {
+      "name": "growth_allowance",
+      "unit": "ratio",
+      "description": "Mass growth allowance for the maturity level"
+    },
+    {
+      "name": "mass_with_growth_g",
+      "unit": "g",
+      "description": "Dry mass with allowance, plus propellant"
+    },
+    {
+      "name": "headroom_g",
+      "unit": "g",
+      "description": "Launch limit minus mass with growth"
+    },
+    {
+      "name": "passes",
+      "unit": "boolean",
+      "description": "True when the design meets the requirement"
+    }
+  ],
+  "module_code": "\"\"\"Mass against the launch limit, with a growth allowance set by design maturity. Standard library only.\"\"\"\n\nRULE_ID = \"V-MASSLIM\"\n\nPARAMETERS = {\n    \"dry_mass_g\": \"Current best estimate of dry mass, in g\",\n    \"propellant_mass_g\": \"Loaded propellant mass, in g\",\n    \"maturity\": \"Design maturity level, one of the levels named in the measures. A name with no unit\",\n    \"launch_limit_g\": \"Maximum mass the launch provider accepts, in g\",\n}\n\n\ndef _require(inputs, names):\n    missing = [name for name in names if name not in inputs]\n    if missing:\n        raise ValueError(f\"missing inputs: {missing}\")\n\n\ndef _allowance(maturity, measures):\n    \"\"\"Growth allowance for a maturity level. An unknown level is an error, never a guess.\"\"\"\n    table = {row[\"maturity\"]: row[\"growth_allowance\"] for row in measures}\n    if maturity not in table:\n        raise ValueError(f\"maturity '{maturity}' is not in the measures. Known levels: {sorted(table)}\")\n    return table[maturity]\n\n\ndef evaluate(inputs, measures):\n    \"\"\"Mass with growth allowance, and the headroom under the launch limit.\"\"\"\n    _require(inputs, (\"dry_mass_g\", \"propellant_mass_g\", \"maturity\", \"launch_limit_g\"))\n    if inputs[\"dry_mass_g\"] <= 0 or inputs[\"propellant_mass_g\"] < 0 or inputs[\"launch_limit_g\"] <= 0:\n        raise ValueError(\"masses must be positive, and propellant must not be negative\")\n    allowance = _allowance(inputs[\"maturity\"], measures)\n    total = inputs[\"dry_mass_g\"] * (1 + allowance) + inputs[\"propellant_mass_g\"]\n    headroom = inputs[\"launch_limit_g\"] - total\n    return {\n        \"growth_allowance\": allowance,\n        \"mass_with_growth_g\": round(total, 1),\n        \"headroom_g\": round(headroom, 1),\n        \"passes\": headroom >= 0,\n    }\n\n\ndef check(inputs, measures):\n    \"\"\"Return a finding when the mass with growth exceeds the launch limit.\"\"\"\n    result = evaluate(inputs, measures)\n    if result[\"passes\"]:\n        return []\n    message = (f\"Mass with {result['growth_allowance']:.0%} growth allowance is {result['mass_with_growth_g']} g. \"\n               f\"The launch limit is {inputs['launch_limit_g']} g. Over by {-result['headroom_g']} g.\")\n    return [{\"rule\": RULE_ID, \"severity\": \"error\", \"domains\": [\"mass\"], \"message\": message,\n             \"evidence\": {**result, **dict(inputs)}}]\n",
+  "test_code": "import pytest\nfrom solution import PARAMETERS, check, evaluate\n\nLEVELS = [{\"maturity\": \"estimated\", \"growth_allowance\": 0.2}, {\"maturity\": \"measured\", \"growth_allowance\": 0.0}]\nBASE = {\"dry_mass_g\": 1000, \"propellant_mass_g\": 100, \"maturity\": \"estimated\", \"launch_limit_g\": 1500}\n\n\ndef test_allowance_applies_to_dry_mass_only():\n    assert evaluate(BASE, LEVELS)[\"mass_with_growth_g\"] == 1300.0\n\n\ndef test_measured_hardware_gets_no_allowance():\n    assert evaluate({**BASE, \"maturity\": \"measured\"}, LEVELS)[\"mass_with_growth_g\"] == 1100.0\n\n\ndef test_unknown_maturity_is_an_error():\n    with pytest.raises(ValueError):\n        evaluate({**BASE, \"maturity\": \"guessed\"}, LEVELS)\n\n\ndef test_over_the_limit_gives_a_finding():\n    over = {**BASE, \"launch_limit_g\": 1200}\n    assert evaluate(over, LEVELS)[\"headroom_g\"] == -100.0\n    assert check(over, LEVELS)[0][\"rule\"] == \"V-MASSLIM\"\n\n\ndef test_exactly_at_the_limit_passes():\n    assert evaluate({**BASE, \"launch_limit_g\": 1300}, LEVELS)[\"passes\"] is True\n\n\ndef test_negative_propellant_rejected():\n    with pytest.raises(ValueError):\n        evaluate({**BASE, \"propellant_mass_g\": -1}, LEVELS)\n"
+}

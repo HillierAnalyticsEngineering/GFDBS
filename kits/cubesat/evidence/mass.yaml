@@ -1,0 +1,20 @@
+# Evidence for the mass function. A person maintains this file.
+# Change it at any time. No code changes and no model call. Then run: python build.py --verify
+
+notes: >
+  Allowances are illustrative. Use the values in your organization's mass properties standard.
+
+measures:
+  - {maturity: "estimated", growth_allowance: 0.25}
+  - {maturity: "calculated", growth_allowance: 0.15}
+  - {maturity: "measured", growth_allowance: 0.03}
+
+examples:
+  - inputs: {dry_mass_g: 3600, propellant_mass_g: 120, launch_limit_g: 5000, maturity: "calculated"}
+    expect: {mass_with_growth_g: 4260.0, headroom_g: 740.0, passes: true}
+  - inputs: {dry_mass_g: 4000, propellant_mass_g: 120, launch_limit_g: 5000, maturity: "estimated"}
+    expect: {mass_with_growth_g: 5120.0, headroom_g: -120.0, passes: false}
+  - inputs: {dry_mass_g: 4500, propellant_mass_g: 120, launch_limit_g: 5000, maturity: "measured"}
+    expect: {mass_with_growth_g: 4755.0, headroom_g: 245.0, passes: true}
+  - inputs: {dry_mass_g: 3600, propellant_mass_g: 120, launch_limit_g: 5000, maturity: "guessed"}
+    raises: ValueError

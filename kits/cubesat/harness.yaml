@@ -1,0 +1,62 @@
+# A harness definition. A project starts as a copy of one of these, then you edit it.
+# It says what is being built, which agents build it, and the rules every generated function must follow.
+
+name: CubeSat design system
+building: CubeSat
+id_prefix: cubesat
+description: Assess small-satellite designs across power, radiation, mass, link, and thermal.
+agents:
+  parameterizer:
+    tier: balanced
+  systems_engineer:
+    tier: deep
+    instructions: agents/systems_engineer.md
+    memory: true
+  specialists:
+  - capability: power
+    instructions: agents/power.md
+    tier: balanced
+    tools:
+    - solar_generation
+  - capability: radiation
+    instructions: agents/radiation.md
+    tier: balanced
+    tools: []
+  - capability: mass
+    instructions: agents/mass.md
+    tier: balanced
+    tools: []
+  - capability: link
+    instructions: agents/link.md
+    tier: balanced
+    tools:
+    - link_budget
+  - capability: thermal
+    instructions: agents/thermal.md
+    tier: balanced
+    tools:
+    - thermal_balance
+  fallback:
+    instructions: agents/generic.md
+    tier: balanced
+  triage:
+    tier: balanced
+  inputs:
+    tier: balanced
+review_rounds: 2
+structure_depth: 3      # how many levels of parts below the whole a decomposition may go. A drill-down stops here too
+architecture:
+- One Python module. Standard library only.
+- 'One entry point: evaluate(inputs: dict, measures: list[dict]) -> dict. The result includes a boolean named passes.'
+- 'One rule: check(inputs: dict, measures: list[dict]) -> list of findings. A finding is a dict with rule, severity,
+  domains, message, evidence.'
+- 'One schema: PARAMETERS, a dict of input name to a one-line description that states the unit.'
+- Measures are data. They are passed in. Never copy them into the code.
+- 'Shared vocabulary: every input and output name goes into one shared dictionary with its unit. A name means one
+  thing across the whole build system.'
+non_functional:
+- Deterministic. The same inputs give the same outputs.
+- No extrapolation. Raise ValueError outside the measured range.
+- Units appear in every parameter description.
+- Every finding carries the numbers that justify it as evidence.
+- A reader can follow the function in one sitting.

@@ -1,0 +1,6 @@
+strands-agents[anthropic]>=1.59
+mem0ai>=2.2
+fastembed>=0.5
+pydantic>=2.7
+pyyaml>=6
+pytest>=8

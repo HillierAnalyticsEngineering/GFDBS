@@ -1,0 +1,8 @@
+{
+  "verdict": "accept",
+  "assessment": "The three parts are what a power engineer would name inside a bus, at one level, with sensible multiplicities. The two attributes sit on the parts that cause them and change the assessment: margin on delivered power is the right quantity. Leaving battery capacity out is correct for an orbit-average margin function.",
+  "instruction": "",
+  "lessons": [
+    "When a bus or distribution part is decomposed, take the margin on delivered power rather than on generation, and default the loss terms to lossless so earlier worked cases still hold."
+  ]
+}

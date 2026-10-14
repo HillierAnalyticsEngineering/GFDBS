@@ -1,0 +1,47 @@
+{
+  "design_notes": "Method: annual dose from the dose-depth measures by linear interpolation, times design life. Margin is rated tolerance over mission dose.\nValid range: shielding inside the measured thicknesses only. The curve is steep, so extrapolation is refused.\nWhat varies per spacecraft: shielding, life, part tolerance, and the required margin. The orbit enters only through the measures.\nAssumption: linear interpolation overstates dose between widely spaced points, which is the safe direction.",
+  "terms": [
+    {
+      "name": "shield_mm",
+      "unit": "mm",
+      "description": "Aluminum-equivalent shielding around the part"
+    },
+    {
+      "name": "life_years",
+      "unit": "years",
+      "description": "Design life of the mission"
+    },
+    {
+      "name": "tolerance_krad",
+      "unit": "krad",
+      "description": "Rated total-dose tolerance of the part"
+    },
+    {
+      "name": "required_rdm",
+      "unit": "ratio",
+      "description": "Required radiation design margin"
+    },
+    {
+      "name": "annual_dose_krad",
+      "unit": "krad",
+      "description": "Dose per year behind the shielding"
+    },
+    {
+      "name": "mission_dose_krad",
+      "unit": "krad",
+      "description": "Dose over the design life"
+    },
+    {
+      "name": "rdm",
+      "unit": "ratio",
+      "description": "Radiation design margin: tolerance over mission dose"
+    },
+    {
+      "name": "passes",
+      "unit": "boolean",
+      "description": "True when the design meets the requirement"
+    }
+  ],
+  "module_code": "\"\"\"Total ionizing dose assessment for the electronic parts of a small satellite. Standard library only.\"\"\"\n\nRULE_ID = \"V-RAD\"\nDEFAULT_REQUIRED_RDM = 2.0\n\nPARAMETERS = {\n    \"shield_mm\": \"Aluminum-equivalent shielding around the part, in mm\",\n    \"life_years\": \"Design life of the mission, in years\",\n    \"tolerance_krad\": \"Rated total-dose tolerance of the part, in krad\",\n    \"required_rdm\": \"Required radiation design margin, a ratio with no unit. Optional, default 2.0\",\n}\n\ndef _interpolate(x, rows, x_key, y_key):\n    \"\"\"Linear interpolation between measured rows. No extrapolation.\"\"\"\n    rows = sorted(rows, key=lambda row: row[x_key])\n    if not rows:\n        raise ValueError(\"no measures were provided\")\n    low, high = rows[0][x_key], rows[-1][x_key]\n    if not low <= x <= high:\n        raise ValueError(f\"{x_key} {x} is outside the measured range {low} to {high}\")\n    for a, b in zip(rows, rows[1:]):\n        if a[x_key] <= x <= b[x_key]:\n            span = b[x_key] - a[x_key]\n            fraction = 0.0 if span == 0 else (x - a[x_key]) / span\n            return a[y_key] + fraction * (b[y_key] - a[y_key])\n    return rows[0][y_key]\n\n\ndef _require(inputs, names):\n    missing = [name for name in names if name not in inputs]\n    if missing:\n        raise ValueError(f\"missing inputs: {missing}\")\n\n\ndef _finding(rule, domain, message, evidence):\n    return {\"rule\": rule, \"severity\": \"error\", \"domains\": [domain], \"message\": message, \"evidence\": evidence}\n\n\ndef evaluate(inputs, measures):\n    \"\"\"Mission dose and radiation design margin for one part.\"\"\"\n    _require(inputs, (\"shield_mm\", \"life_years\", \"tolerance_krad\"))\n    if inputs[\"life_years\"] <= 0 or inputs[\"tolerance_krad\"] <= 0:\n        raise ValueError(\"life_years and tolerance_krad must be positive\")\n    required = inputs.get(\"required_rdm\", DEFAULT_REQUIRED_RDM)\n    annual = _interpolate(inputs[\"shield_mm\"], measures, \"shield_mm\", \"krad_per_year\")\n    mission = annual * inputs[\"life_years\"]\n    rdm = inputs[\"tolerance_krad\"] / mission\n    return {\n        \"annual_dose_krad\": round(annual, 3),\n        \"mission_dose_krad\": round(mission, 3),\n        \"rdm\": round(rdm, 2),\n        \"required_rdm\": required,\n        \"passes\": rdm >= required,\n    }\n\n\ndef check(inputs, measures):\n    \"\"\"Return a finding when the part does not meet the required margin.\"\"\"\n    result = evaluate(inputs, measures)\n    if result[\"passes\"]:\n        return []\n    message = (f\"Radiation design margin is {result['rdm']}. The requirement is {result['required_rdm']}. \"\n               f\"Mission dose {result['mission_dose_krad']} krad behind {inputs['shield_mm']} mm, \"\n               f\"part rated {inputs['tolerance_krad']} krad.\")\n    return [_finding(RULE_ID, \"radiation\", message, {**result, **dict(inputs)})]\n",
+  "test_code": "import pytest\nfrom solution import PARAMETERS, check, evaluate\n\nTABLE = [{\"shield_mm\": 1.0, \"krad_per_year\": 10.0}, {\"shield_mm\": 3.0, \"krad_per_year\": 2.0}]\n\n\ndef test_dose_interpolates_between_points():\n    assert evaluate({\"shield_mm\": 2.0, \"life_years\": 1, \"tolerance_krad\": 50}, TABLE)[\"annual_dose_krad\"] == pytest.approx(6.0)\n\n\ndef test_row_order_does_not_matter():\n    assert evaluate({\"shield_mm\": 2.0, \"life_years\": 1, \"tolerance_krad\": 50}, list(reversed(TABLE)))[\"annual_dose_krad\"] == pytest.approx(6.0)\n\n\ndef test_no_extrapolation():\n    for shield in (0.5, 3.5):\n        with pytest.raises(ValueError):\n            evaluate({\"shield_mm\": shield, \"life_years\": 1, \"tolerance_krad\": 50}, TABLE)\n\n\ndef test_empty_measures_rejected():\n    with pytest.raises(ValueError):\n        evaluate({\"shield_mm\": 1.0, \"life_years\": 1, \"tolerance_krad\": 10}, [])\n\n\ndef test_margin_and_pass():\n    r = evaluate({\"shield_mm\": 3.0, \"life_years\": 2, \"tolerance_krad\": 10}, TABLE)\n    assert r[\"mission_dose_krad\"] == 4.0 and r[\"rdm\"] == 2.5 and r[\"passes\"] is True\n\n\ndef test_program_can_raise_the_required_margin():\n    assert evaluate({\"shield_mm\": 3.0, \"life_years\": 2, \"tolerance_krad\": 10, \"required_rdm\": 3.0}, TABLE)[\"passes\"] is False\n\n\ndef test_finding_carries_evidence():\n    f = check({\"shield_mm\": 1.0, \"life_years\": 2, \"tolerance_krad\": 10}, TABLE)\n    assert len(f) == 1 and f[0][\"rule\"] == \"V-RAD\" and f[0][\"evidence\"][\"mission_dose_krad\"] == 20.0\n\n\ndef test_every_parameter_states_a_unit():\n    assert all((\" in \" in d) or (\"no unit\" in d) for d in PARAMETERS.values())\n"
+}

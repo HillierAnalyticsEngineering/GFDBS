@@ -1,0 +1,82 @@
+{
+  "design_notes": "Method: EIRP, minus free-space path loss, minus a loss looked up by elevation, plus ground gain over noise temperature, gives carrier to noise density. Subtract the data rate to get Eb/N0. Margin is Eb/N0 minus what the modulation needs.\nValid range: elevation inside the loss measures.\nWhat varies per spacecraft: transmitter, antennas, frequency, range, data rate, and ground station.\nAssumption: slant range is an input. Orbit geometry belongs to another function.",
+  "terms": [
+    {
+      "name": "tx_power_w",
+      "unit": "W",
+      "description": "Transmitter output power"
+    },
+    {
+      "name": "tx_gain_dbi",
+      "unit": "dBi",
+      "description": "Transmit antenna gain"
+    },
+    {
+      "name": "rx_gain_dbi",
+      "unit": "dBi",
+      "description": "Ground antenna gain"
+    },
+    {
+      "name": "frequency_mhz",
+      "unit": "MHz",
+      "description": "Carrier frequency"
+    },
+    {
+      "name": "slant_range_km",
+      "unit": "km",
+      "description": "Distance from spacecraft to ground station"
+    },
+    {
+      "name": "elevation_deg",
+      "unit": "deg",
+      "description": "Elevation angle at the ground station"
+    },
+    {
+      "name": "data_rate_kbps",
+      "unit": "kbps",
+      "description": "Information data rate"
+    },
+    {
+      "name": "noise_temp_k",
+      "unit": "K",
+      "description": "Receive system noise temperature"
+    },
+    {
+      "name": "required_ebn0_db",
+      "unit": "dB",
+      "description": "Eb/N0 the modulation and coding need"
+    },
+    {
+      "name": "required_margin",
+      "unit": "dB",
+      "description": "Required link margin"
+    },
+    {
+      "name": "loss_db",
+      "unit": "dB",
+      "description": "Atmospheric and implementation loss at this elevation"
+    },
+    {
+      "name": "path_loss_db",
+      "unit": "dB",
+      "description": "Free-space path loss"
+    },
+    {
+      "name": "ebn0_db",
+      "unit": "dB",
+      "description": "Eb/N0 at the ground station"
+    },
+    {
+      "name": "margin_db",
+      "unit": "dB",
+      "description": "Eb/N0 minus required Eb/N0"
+    },
+    {
+      "name": "passes",
+      "unit": "boolean",
+      "description": "True when the design meets the requirement"
+    }
+  ],
+  "module_code": "\"\"\"Downlink margin for a small satellite. Standard library only.\"\"\"\nimport math\n\nRULE_ID = \"V-LINKM\"\nBOLTZMANN_DBW_HZ_K = -228.6\nDEFAULT_REQUIRED_MARGIN_DB = 3.0\n\nPARAMETERS = {\n    \"tx_power_w\": \"Transmitter output power, in W\",\n    \"tx_gain_dbi\": \"Transmit antenna gain, in dBi\",\n    \"rx_gain_dbi\": \"Ground antenna gain, in dBi\",\n    \"frequency_mhz\": \"Carrier frequency, in MHz\",\n    \"slant_range_km\": \"Distance from spacecraft to ground station, in km\",\n    \"elevation_deg\": \"Elevation angle at the ground station, in deg\",\n    \"data_rate_kbps\": \"Information data rate, in kbps\",\n    \"noise_temp_k\": \"Receive system noise temperature, in K\",\n    \"required_ebn0_db\": \"Eb/N0 the modulation and coding need, in dB\",\n    \"required_margin\": \"Required link margin, in dB. Optional, default 3.0\",\n}\n\ndef _interpolate(x, rows, x_key, y_key):\n    \"\"\"Linear interpolation between measured rows. No extrapolation.\"\"\"\n    rows = sorted(rows, key=lambda row: row[x_key])\n    if not rows:\n        raise ValueError(\"no measures were provided\")\n    low, high = rows[0][x_key], rows[-1][x_key]\n    if not low <= x <= high:\n        raise ValueError(f\"{x_key} {x} is outside the measured range {low} to {high}\")\n    for a, b in zip(rows, rows[1:]):\n        if a[x_key] <= x <= b[x_key]:\n            span = b[x_key] - a[x_key]\n            fraction = 0.0 if span == 0 else (x - a[x_key]) / span\n            return a[y_key] + fraction * (b[y_key] - a[y_key])\n    return rows[0][y_key]\n\n\ndef _require(inputs, names):\n    missing = [name for name in names if name not in inputs]\n    if missing:\n        raise ValueError(f\"missing inputs: {missing}\")\n\n\ndef _finding(rule, domain, message, evidence):\n    return {\"rule\": rule, \"severity\": \"error\", \"domains\": [domain], \"message\": message, \"evidence\": evidence}\n\n\ndef evaluate(inputs, measures):\n    \"\"\"Eb/N0 at the ground station and its margin over what the modulation needs.\"\"\"\n    _require(inputs, (\"tx_power_w\", \"tx_gain_dbi\", \"rx_gain_dbi\", \"frequency_mhz\", \"slant_range_km\",\n                      \"elevation_deg\", \"data_rate_kbps\", \"noise_temp_k\", \"required_ebn0_db\"))\n    for name in (\"tx_power_w\", \"frequency_mhz\", \"slant_range_km\", \"data_rate_kbps\", \"noise_temp_k\"):\n        if inputs[name] <= 0:\n            raise ValueError(f\"{name} must be positive\")\n    required = inputs.get(\"required_margin\", DEFAULT_REQUIRED_MARGIN_DB)\n    loss = _interpolate(inputs[\"elevation_deg\"], measures, \"elevation_deg\", \"loss_db\")\n    eirp = 10 * math.log10(inputs[\"tx_power_w\"]) + inputs[\"tx_gain_dbi\"]\n    path_loss = 32.45 + 20 * math.log10(inputs[\"frequency_mhz\"]) + 20 * math.log10(inputs[\"slant_range_km\"])\n    cn0 = (eirp - path_loss - loss + inputs[\"rx_gain_dbi\"]\n           - 10 * math.log10(inputs[\"noise_temp_k\"]) - BOLTZMANN_DBW_HZ_K)\n    ebn0 = cn0 - 10 * math.log10(inputs[\"data_rate_kbps\"] * 1000)\n    margin = ebn0 - inputs[\"required_ebn0_db\"]\n    return {\n        \"loss_db\": round(loss, 2),\n        \"path_loss_db\": round(path_loss, 2),\n        \"ebn0_db\": round(ebn0, 2),\n        \"margin_db\": round(margin, 2),\n        \"required_margin\": required,\n        \"passes\": margin >= required,\n    }\n\n\ndef check(inputs, measures):\n    \"\"\"Return a finding when the link does not close with the required margin.\"\"\"\n    result = evaluate(inputs, measures)\n    if result[\"passes\"]:\n        return []\n    message = (f\"Link margin is {result['margin_db']} dB. The requirement is {result['required_margin']} dB. \"\n               f\"Eb/N0 {result['ebn0_db']} dB at {inputs['elevation_deg']} deg elevation and \"\n               f\"{inputs['data_rate_kbps']} kbps.\")\n    return [_finding(RULE_ID, \"link\", message, {**result, **dict(inputs)})]\n",
+  "test_code": "import math\nimport pytest\nfrom solution import PARAMETERS, check, evaluate\n\nLOSSES = [{\"elevation_deg\": 10, \"loss_db\": 3.0}, {\"elevation_deg\": 90, \"loss_db\": 1.0}]\nBASE = {\"tx_power_w\": 1.0, \"tx_gain_dbi\": 0.0, \"rx_gain_dbi\": 30.0, \"frequency_mhz\": 1000.0, \"slant_range_km\": 1000.0,\n        \"elevation_deg\": 10, \"data_rate_kbps\": 100.0, \"noise_temp_k\": 100.0, \"required_ebn0_db\": 10.0}\n\n\ndef test_path_loss_matches_the_textbook_form():\n    assert evaluate(BASE, LOSSES)[\"path_loss_db\"] == pytest.approx(32.45 + 60 + 60, abs=0.01)\n\n\ndef test_ebn0_from_first_principles():\n    expected = 0 - 152.45 - 3.0 + 30 - 20 + 228.6 - 50\n    assert evaluate(BASE, LOSSES)[\"ebn0_db\"] == pytest.approx(expected, abs=0.01)\n\n\ndef test_doubling_power_adds_three_db():\n    a, b = evaluate(BASE, LOSSES), evaluate({**BASE, \"tx_power_w\": 2.0}, LOSSES)\n    assert b[\"margin_db\"] - a[\"margin_db\"] == pytest.approx(10 * math.log10(2), abs=0.02)\n\n\ndef test_loss_is_interpolated_by_elevation():\n    assert evaluate({**BASE, \"elevation_deg\": 50}, LOSSES)[\"loss_db\"] == pytest.approx(2.0)\n\n\ndef test_no_extrapolation_below_the_lowest_elevation():\n    with pytest.raises(ValueError):\n        evaluate({**BASE, \"elevation_deg\": 5}, LOSSES)\n\n\ndef test_finding_when_the_link_does_not_close():\n    weak = {**BASE, \"data_rate_kbps\": 100000.0}\n    assert evaluate(weak, LOSSES)[\"passes\"] is False\n    assert check(weak, LOSSES)[0][\"rule\"] == \"V-LINKM\"\n\n\ndef test_program_can_set_the_required_margin():\n    assert evaluate({**BASE, \"required_margin\": 99.0}, LOSSES)[\"passes\"] is False\n"
+}

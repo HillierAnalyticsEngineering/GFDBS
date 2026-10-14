@@ -1,0 +1,223 @@
+{
+  "mission_name": "CNO-Sat 1",
+  "summary": "A 3U CubeSat that images the Lake Erie western basin to track harmful algal blooms.",
+  "parameters": [
+    {
+      "name": "altitude_km",
+      "value": 500,
+      "unit": "km",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: 500 km sun-synchronous."
+    },
+    {
+      "name": "life_years",
+      "value": 2,
+      "unit": "years",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: two-year life."
+    },
+    {
+      "name": "array_area_m2",
+      "value": 0.06,
+      "unit": "m2",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: two body-mounted panels, 0.06 m2 in total."
+    },
+    {
+      "name": "cell_efficiency",
+      "value": 0.29,
+      "unit": "ratio",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: 29 percent cells."
+    },
+    {
+      "name": "tx_power_w",
+      "value": 2.0,
+      "unit": "W",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: 2 W S-band transmitter."
+    },
+    {
+      "name": "data_rate_kbps",
+      "value": 1000,
+      "unit": "kbps",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: 1 Mbps downlink."
+    },
+    {
+      "name": "launch_limit_g",
+      "value": 5000,
+      "unit": "g",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: keep it under 5 kg."
+    },
+    {
+      "name": "solar_constant_w_m2",
+      "value": 1361,
+      "unit": "W/m2",
+      "source": "user",
+      "parameterized": false,
+      "rationale": "The person said to keep the solar constant fixed."
+    },
+    {
+      "name": "frequency_mhz",
+      "value": 2250,
+      "unit": "MHz",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "S-band was stated. 2250 MHz is a common space-to-Earth allocation."
+    },
+    {
+      "name": "rx_gain_dbi",
+      "value": 35.0,
+      "unit": "dBi",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "A 3 m dish was stated. At 2250 MHz and 55 percent efficiency that is about 35 dBi."
+    },
+    {
+      "name": "elevation_deg",
+      "value": 10,
+      "unit": "deg",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "A typical minimum elevation for a fixed ground station."
+    },
+    {
+      "name": "slant_range_km",
+      "value": 1695,
+      "unit": "km",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Range from 500 km altitude at 10 degrees elevation."
+    },
+    {
+      "name": "pointing_factor",
+      "value": 0.45,
+      "unit": "ratio",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Body-mounted panels on a nadir-pointing 3U average well under full sun."
+    },
+    {
+      "name": "sunlit_fraction",
+      "value": 0.62,
+      "unit": "ratio",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Typical for a 500 km orbit that is not dawn-dusk."
+    },
+    {
+      "name": "bus_load_w",
+      "value": 5.2,
+      "unit": "W",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Orbit-average load of a 3U imaging bus without the transmitter."
+    },
+    {
+      "name": "bus_dry_mass_g",
+      "value": 3300,
+      "unit": "g",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "A 3U bus with payload, without panels and added shielding."
+    },
+    {
+      "name": "propellant_mass_g",
+      "value": 120,
+      "unit": "g",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "A small cold-gas load for orbit maintenance."
+    },
+    {
+      "name": "maturity",
+      "value": "calculated",
+      "unit": "name",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "A design at this stage is past estimates and short of measured hardware."
+    },
+    {
+      "name": "shield_mm",
+      "value": 2.0,
+      "unit": "mm",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Typical aluminum-equivalent shielding inside a 3U structure."
+    },
+    {
+      "name": "temp_min_c",
+      "value": -20,
+      "unit": "degC",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Common electronics lower limit."
+    },
+    {
+      "name": "temp_max_c",
+      "value": 50,
+      "unit": "degC",
+      "source": "ai",
+      "parameterized": true,
+      "rationale": "Common electronics upper limit."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R-001",
+      "text": "The solar array shall cover the orbit-average load with at least 10 percent margin at end of life.",
+      "source": "ai",
+      "capability": "power"
+    },
+    {
+      "id": "R-002",
+      "text": "The spacecraft mass with growth allowance shall not exceed the 5000 g launch limit.",
+      "source": "user",
+      "capability": "mass"
+    },
+    {
+      "id": "R-003",
+      "text": "The downlink shall carry 1 Mbps with at least 3 dB of margin at minimum elevation.",
+      "source": "user",
+      "capability": "link"
+    },
+    {
+      "id": "R-004",
+      "text": "Every part shall survive the two-year mission dose with a radiation design margin of at least 2.",
+      "source": "ai",
+      "capability": "radiation"
+    },
+    {
+      "id": "R-005",
+      "text": "The bulk temperature shall stay between the minimum and maximum allowed in the hot case.",
+      "source": "ai",
+      "capability": "thermal"
+    }
+  ],
+  "capabilities": [
+    "power",
+    "radiation",
+    "mass",
+    "link",
+    "thermal"
+  ],
+  "parameterization_notes": [
+    "Every stated number is a parameter, so another mission can change it.",
+    "The solar constant stays a fixed constant, as instructed.",
+    "Gaps are filled with typical 3U values and tagged ai."
+  ],
+  "open_questions": [
+    "Is 10 percent the power margin your program requires?",
+    "Which S-band frequency is licensed?",
+    "What is the dry mass of the bus you intend to buy?"
+  ]
+}

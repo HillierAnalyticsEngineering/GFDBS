@@ -1,0 +1,22 @@
+# Evidence for the power function. A person maintains this file.
+# Change it at any time. No code changes and no model call. Then run: python build.py --verify
+
+notes: >
+  Degradation points are illustrative for triple-junction cells in low Earth orbit.
+  Replace them with the cell vendor's qualification data.
+
+measures:
+  - {life_years: 0,  relative_output: 1.00}
+  - {life_years: 2,  relative_output: 0.95}
+  - {life_years: 5,  relative_output: 0.88}
+  - {life_years: 10, relative_output: 0.78}
+
+examples:
+  - inputs: {array_area_m2: 0.09, cell_efficiency: 0.29, pointing_factor: 0.45, sunlit_fraction: 0.62, load_avg_w: 6.0, life_years: 2}
+    expect: {generation_avg_w: 9.42, margin: 0.57, passes: true}
+  - inputs: {array_area_m2: 0.06, cell_efficiency: 0.29, pointing_factor: 0.45, sunlit_fraction: 0.62, load_avg_w: 6.0, life_years: 2}
+    expect: {generation_avg_w: 6.28, margin: 0.05, passes: false}
+  - inputs: {array_area_m2: 0.09, cell_efficiency: 0.29, pointing_factor: 0.45, sunlit_fraction: 0.62, load_avg_w: 6.0, life_years: 5}
+    expect: {generation_avg_w: 8.72, margin: 0.45, passes: true}
+  - inputs: {array_area_m2: 0.09, cell_efficiency: 0.29, pointing_factor: 0.45, sunlit_fraction: 0.62, load_avg_w: 6.0, life_years: 12}
+    raises: ValueError

@@ -1,0 +1,738 @@
+{
+  "architecture": "Five elements, one per assessment. The link element's transmitter is an electrical load on the power element. The electrical load becomes heat in the thermal element. Solar array area and shielding thickness both add dry mass. Those three exchanges are where one specialist's choice reaches another specialist's result.",
+  "contracts": [
+    {
+      "function_id": "cubesat.power.margin",
+      "capability": "power",
+      "question": "Does end-of-life generation cover the load with margin?",
+      "rule_id": "V-EOLPWR",
+      "method": "Sunlit generation scaled by end-of-life output and sunlit fraction, compared with the load.",
+      "inputs": [
+        {
+          "name": "array_area_m2",
+          "unit": "m2",
+          "description": "Total solar cell area: the sum of panel_area_m2 over the panels",
+          "optional": false,
+          "example": 0.03,
+          "part": "SolarArray",
+          "aggregate": "sum",
+          "of": "panel_area_m2",
+          "example_rationale": "one body-mounted 1U face carries about 0.03 m2 of cells"
+        },
+        {
+          "name": "cell_efficiency",
+          "unit": "ratio",
+          "description": "Beginning-of-life cell efficiency, averaged over the panels",
+          "optional": false,
+          "example": null,
+          "part": "SolarArray",
+          "aggregate": "mean",
+          "of": "cell_efficiency"
+        },
+        {
+          "name": "pointing_factor",
+          "unit": "ratio",
+          "description": "Average cosine of the sun angle on the array, averaged over the panels",
+          "optional": false,
+          "example": null,
+          "part": "SolarArray",
+          "aggregate": "mean",
+          "of": "pointing_factor"
+        },
+        {
+          "name": "sunlit_fraction",
+          "unit": "ratio",
+          "description": "Fraction of the orbit in sunlight",
+          "optional": false,
+          "example": null,
+          "part": "ElectricalPowerSubsystem",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "load_avg_w",
+          "unit": "W",
+          "description": "Orbit-average electrical load",
+          "optional": false,
+          "example": null,
+          "part": "PowerBus",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "life_years",
+          "unit": "years",
+          "description": "Design life of the mission",
+          "optional": false,
+          "example": null,
+          "part": "ElectricalPowerSubsystem",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "required_margin",
+          "unit": "ratio",
+          "description": "Required power margin",
+          "optional": true,
+          "example": null,
+          "part": "ElectricalPowerSubsystem",
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "outputs": [
+        {
+          "name": "generation_avg_w",
+          "unit": "W",
+          "description": "Orbit-average generation at end of life",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "margin",
+          "unit": "ratio",
+          "description": "Generation over load, minus one",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "passes",
+          "unit": "boolean",
+          "description": "True when the design meets the requirement",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "part": "ElectricalPowerSubsystem"
+    },
+    {
+      "function_id": "cubesat.radiation.dose",
+      "capability": "radiation",
+      "question": "Does every part survive the mission dose with margin?",
+      "rule_id": "V-RAD",
+      "method": "Annual dose behind the shielding times design life, compared with part tolerance.",
+      "inputs": [
+        {
+          "name": "shield_mm",
+          "unit": "mm",
+          "description": "Aluminum-equivalent shielding around the part",
+          "optional": false,
+          "example": null,
+          "part": "Shielding",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "life_years",
+          "unit": "years",
+          "description": "Design life of the mission",
+          "optional": false,
+          "example": null,
+          "part": "RadiationEnvironment",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "tolerance_krad",
+          "unit": "krad",
+          "description": "Rated total-dose tolerance of the part",
+          "optional": false,
+          "example": 20,
+          "part": "ElectronicsStack",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "required_rdm",
+          "unit": "ratio",
+          "description": "Required radiation design margin",
+          "optional": true,
+          "example": null,
+          "part": "RadiationEnvironment",
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mission_dose_krad",
+          "unit": "krad",
+          "description": "Dose over the design life",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "rdm",
+          "unit": "ratio",
+          "description": "Radiation design margin: tolerance over mission dose",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "passes",
+          "unit": "boolean",
+          "description": "True when the design meets the requirement",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "part": "RadiationEnvironment"
+    },
+    {
+      "function_id": "cubesat.mass.launch",
+      "capability": "mass",
+      "question": "Does the mass with growth allowance fit the launch limit?",
+      "rule_id": "V-MASSLIM",
+      "method": "Dry mass with a maturity-based allowance, plus propellant, compared with the limit.",
+      "inputs": [
+        {
+          "name": "dry_mass_g",
+          "unit": "g",
+          "description": "Current best estimate of dry mass",
+          "optional": false,
+          "example": null,
+          "part": "Structure",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "propellant_mass_g",
+          "unit": "g",
+          "description": "Loaded propellant mass",
+          "optional": false,
+          "example": null,
+          "part": "Propellant",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "maturity",
+          "unit": "name",
+          "description": "Design maturity level",
+          "optional": false,
+          "example": null,
+          "part": "MassProperties",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "launch_limit_g",
+          "unit": "g",
+          "description": "Maximum mass the launch provider accepts",
+          "optional": false,
+          "example": null,
+          "part": "MassProperties",
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mass_with_growth_g",
+          "unit": "g",
+          "description": "Dry mass with allowance, plus propellant",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "headroom_g",
+          "unit": "g",
+          "description": "Launch limit minus mass with growth",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "passes",
+          "unit": "boolean",
+          "description": "True when the design meets the requirement",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "part": "MassProperties"
+    },
+    {
+      "function_id": "cubesat.link.downlink",
+      "capability": "link",
+      "question": "Does the downlink close with margin at minimum elevation?",
+      "rule_id": "V-LINKM",
+      "method": "EIRP, path loss, elevation loss, ground gain over noise temperature, and data rate give Eb/N0 and margin.",
+      "inputs": [
+        {
+          "name": "tx_power_w",
+          "unit": "W",
+          "description": "Transmitter output power",
+          "optional": false,
+          "example": null,
+          "part": "Transmitter",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "tx_gain_dbi",
+          "unit": "dBi",
+          "description": "Transmit antenna gain",
+          "optional": false,
+          "example": 6.0,
+          "part": "Antenna",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "rx_gain_dbi",
+          "unit": "dBi",
+          "description": "Ground antenna gain",
+          "optional": false,
+          "example": null,
+          "part": "GroundStation",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "frequency_mhz",
+          "unit": "MHz",
+          "description": "Carrier frequency",
+          "optional": false,
+          "example": null,
+          "part": "Transmitter",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "slant_range_km",
+          "unit": "km",
+          "description": "Distance from spacecraft to ground station",
+          "optional": false,
+          "example": null,
+          "part": "GroundStation",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "elevation_deg",
+          "unit": "deg",
+          "description": "Elevation angle at the ground station",
+          "optional": false,
+          "example": null,
+          "part": "GroundStation",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "data_rate_kbps",
+          "unit": "kbps",
+          "description": "Information data rate",
+          "optional": false,
+          "example": null,
+          "part": "Transmitter",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "noise_temp_k",
+          "unit": "K",
+          "description": "Receive system noise temperature",
+          "optional": false,
+          "example": 200.0,
+          "part": "GroundStation",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "required_ebn0_db",
+          "unit": "dB",
+          "description": "Eb/N0 the modulation and coding need",
+          "optional": false,
+          "example": 9.6,
+          "part": "CommunicationsSubsystem",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "required_margin_db",
+          "unit": "dB",
+          "description": "Required link margin",
+          "optional": true,
+          "example": null,
+          "part": "CommunicationsSubsystem",
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "outputs": [
+        {
+          "name": "ebn0_db",
+          "unit": "dB",
+          "description": "Eb/N0 at the ground station",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "margin_db",
+          "unit": "dB",
+          "description": "Eb/N0 minus required Eb/N0",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "passes",
+          "unit": "boolean",
+          "description": "True when the design meets the requirement",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "part": "CommunicationsSubsystem"
+    },
+    {
+      "function_id": "cubesat.thermal.bulk",
+      "capability": "thermal",
+      "question": "Does the bulk temperature stay inside its limits?",
+      "rule_id": "V-TEMP",
+      "method": "Absorbed solar and Earth infrared heat plus internal dissipation equals radiated heat.",
+      "inputs": [
+        {
+          "name": "case",
+          "unit": "name",
+          "description": "Environment case",
+          "optional": false,
+          "example": "hot",
+          "part": "ThermalControl",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "absorptivity",
+          "unit": "ratio",
+          "description": "Solar absorptivity of the outer surface",
+          "optional": false,
+          "example": 0.9,
+          "part": "ExternalSurface",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "emissivity",
+          "unit": "ratio",
+          "description": "Infrared emissivity of the outer surface",
+          "optional": false,
+          "example": 0.85,
+          "part": "ExternalSurface",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "projected_area_m2",
+          "unit": "m2",
+          "description": "Area facing the sun and the Earth",
+          "optional": false,
+          "example": 0.035,
+          "part": "ExternalSurface",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "radiating_area_m2",
+          "unit": "m2",
+          "description": "Total area that radiates to space",
+          "optional": false,
+          "example": 0.14,
+          "part": "ExternalSurface",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "internal_power_w",
+          "unit": "W",
+          "description": "Heat dissipated inside the spacecraft",
+          "optional": false,
+          "example": null,
+          "part": "ThermalControl",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "temp_min_c",
+          "unit": "degC",
+          "description": "Lowest allowed bulk temperature",
+          "optional": false,
+          "example": null,
+          "part": "OperatingLimits",
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "temp_max_c",
+          "unit": "degC",
+          "description": "Highest allowed bulk temperature",
+          "optional": false,
+          "example": null,
+          "part": "OperatingLimits",
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "outputs": [
+        {
+          "name": "temperature_c",
+          "unit": "degC",
+          "description": "Equilibrium bulk temperature",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "passes",
+          "unit": "boolean",
+          "description": "True when the design meets the requirement",
+          "optional": false,
+          "example": null,
+          "aggregate": "",
+          "of": ""
+        }
+      ],
+      "part": "ThermalControl"
+    }
+  ],
+  "exchanges": [
+    {
+      "id": "X-1",
+      "source_element": "Transmitter",
+      "target_element": "PowerBus",
+      "target_input": "load_avg_w",
+      "expression": "bus_load_w + tx_power_w * tx_duty_cycle / tx_efficiency",
+      "unit": "W",
+      "rationale": "The transmitter draws DC power while it is on. Its orbit average adds to the bus load.",
+      "parameters": [
+        {
+          "name": "tx_duty_cycle",
+          "unit": "ratio",
+          "description": "Fraction of the orbit the transmitter is on",
+          "optional": false,
+          "example": 0.15,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "tx_efficiency",
+          "unit": "ratio",
+          "description": "RF output over DC input of the transmitter",
+          "optional": false,
+          "example": 0.33,
+          "aggregate": "",
+          "of": ""
+        }
+      ]
+    },
+    {
+      "id": "X-2",
+      "source_element": "PowerBus",
+      "target_element": "ThermalControl",
+      "target_input": "internal_power_w",
+      "expression": "load_avg_w",
+      "unit": "W",
+      "rationale": "Nearly all electrical load ends as heat inside the spacecraft.",
+      "parameters": []
+    },
+    {
+      "id": "X-3",
+      "source_element": "ElectricalPowerSubsystem",
+      "target_element": "Structure",
+      "target_input": "dry_mass_g",
+      "expression": "bus_dry_mass_g + array_area_m2 * panel_density_g_m2 + shield_mm * shield_mass_g_per_mm",
+      "unit": "g",
+      "rationale": "Solar panels and added shielding are the two masses that other elements' choices drive.",
+      "parameters": [
+        {
+          "name": "panel_density_g_m2",
+          "unit": "g/m2",
+          "description": "Mass of solar panel per unit area",
+          "optional": false,
+          "example": 3500,
+          "aggregate": "",
+          "of": ""
+        },
+        {
+          "name": "shield_mass_g_per_mm",
+          "unit": "g/mm",
+          "description": "Added mass per millimeter of shielding over the electronics",
+          "optional": false,
+          "example": 60,
+          "aggregate": "",
+          "of": ""
+        }
+      ]
+    }
+  ],
+  "structure": [
+    {
+      "name": "ElectricalPowerSubsystem",
+      "parent": "",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "power",
+      "description": "Generates, stores, and distributes power"
+    },
+    {
+      "name": "SolarArray",
+      "parent": "ElectricalPowerSubsystem",
+      "specializes": "",
+      "multiplicity": "1..*",
+      "capability": "power",
+      "description": "Body-mounted or deployable cell area"
+    },
+    {
+      "name": "BodyMountedPanel",
+      "parent": "ElectricalPowerSubsystem",
+      "specializes": "SolarArray",
+      "multiplicity": "0..*",
+      "capability": "power",
+      "description": ""
+    },
+    {
+      "name": "DeployablePanel",
+      "parent": "ElectricalPowerSubsystem",
+      "specializes": "SolarArray",
+      "multiplicity": "0..*",
+      "capability": "power",
+      "description": ""
+    },
+    {
+      "name": "PowerBus",
+      "parent": "ElectricalPowerSubsystem",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "power",
+      "description": "The loads the array must carry"
+    },
+    {
+      "name": "RadiationEnvironment",
+      "parent": "",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "radiation",
+      "description": "Dose over the mission"
+    },
+    {
+      "name": "Shielding",
+      "parent": "RadiationEnvironment",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "radiation",
+      "description": "Aluminium-equivalent shielding over the electronics"
+    },
+    {
+      "name": "ElectronicsStack",
+      "parent": "RadiationEnvironment",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "radiation",
+      "description": "The parts that must survive the dose"
+    },
+    {
+      "name": "MassProperties",
+      "parent": "",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "mass",
+      "description": "Mass with growth against the launch limit"
+    },
+    {
+      "name": "Structure",
+      "parent": "MassProperties",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "mass",
+      "description": "Dry mass of the bus"
+    },
+    {
+      "name": "Propellant",
+      "parent": "MassProperties",
+      "specializes": "",
+      "multiplicity": "0..1",
+      "capability": "mass",
+      "description": ""
+    },
+    {
+      "name": "CommunicationsSubsystem",
+      "parent": "",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "link",
+      "description": "The S-band downlink"
+    },
+    {
+      "name": "Transmitter",
+      "parent": "CommunicationsSubsystem",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "link",
+      "description": ""
+    },
+    {
+      "name": "Antenna",
+      "parent": "CommunicationsSubsystem",
+      "specializes": "",
+      "multiplicity": "1..*",
+      "capability": "link",
+      "description": ""
+    },
+    {
+      "name": "GroundStation",
+      "parent": "CommunicationsSubsystem",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "link",
+      "description": "The dish in Akron"
+    },
+    {
+      "name": "ThermalControl",
+      "parent": "",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "thermal",
+      "description": "Single-node screening"
+    },
+    {
+      "name": "ExternalSurface",
+      "parent": "ThermalControl",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "thermal",
+      "description": "Absorbs and radiates"
+    },
+    {
+      "name": "OperatingLimits",
+      "parent": "ThermalControl",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "thermal",
+      "description": ""
+    }
+  ]
+}

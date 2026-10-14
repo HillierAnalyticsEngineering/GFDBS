@@ -1,0 +1,138 @@
+{
+  "summary": "New vendor data extends array degradation to 15 years. The program now requires 6 dB of link margin and a 1.2 factor on radiation dose. The baseline moves to deployable panels.",
+  "parameter_changes": [
+    {
+      "name": "required_margin_db",
+      "value": 6.0,
+      "unit": "dB",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: this program requires 6 dB of link margin."
+    },
+    {
+      "name": "dose_factor",
+      "value": 1.2,
+      "unit": "ratio",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: apply 1.2 to dose for solar-cycle uncertainty."
+    },
+    {
+      "name": "bus_dry_mass_g",
+      "value": 3450,
+      "unit": "g",
+      "source": "user",
+      "parameterized": true,
+      "rationale": "Stated: bus dry mass with hinges is 3450 g."
+    }
+  ],
+  "requirement_changes": [
+    {
+      "action": "revise",
+      "id": "R-003",
+      "text": "The downlink shall carry 1 Mbps with at least 6 dB of margin at minimum elevation.",
+      "capability": "link"
+    },
+    {
+      "action": "revise",
+      "id": "R-004",
+      "text": "Every part shall survive the mission dose, increased by the dose factor, with a radiation design margin of at least 2.",
+      "capability": "radiation"
+    }
+  ],
+  "new_measures": [
+    {
+      "capability": "power",
+      "row": {
+        "life_years": 15,
+        "relative_output": 0.7
+      }
+    }
+  ],
+  "new_cases": [
+    {
+      "capability": "power",
+      "inputs": {
+        "array_area_m2": 0.09,
+        "cell_efficiency": 0.29,
+        "pointing_factor": 0.45,
+        "sunlit_fraction": 0.62,
+        "load_avg_w": 6.0,
+        "life_years": 12
+      },
+      "expect": {
+        "generation_avg_w": 7.41,
+        "passes": true
+      },
+      "raises": false
+    },
+    {
+      "capability": "radiation",
+      "inputs": {
+        "shield_mm": 2.0,
+        "life_years": 2,
+        "tolerance_krad": 20,
+        "dose_factor": 1.2
+      },
+      "expect": {
+        "mission_dose_krad": 9.6,
+        "rdm": 2.08,
+        "passes": true
+      },
+      "raises": false
+    }
+  ],
+  "retire_cases": [
+    {
+      "capability": "power",
+      "inputs": {
+        "array_area_m2": 0.09,
+        "cell_efficiency": 0.29,
+        "pointing_factor": 0.45,
+        "sunlit_fraction": 0.62,
+        "load_avg_w": 6.0,
+        "life_years": 12
+      },
+      "expect": {},
+      "raises": true
+    }
+  ],
+  "functions_to_revise": [
+    {
+      "function_id": "cubesat.radiation.dose",
+      "instruction": "Add a parameter dose_factor, a ratio with default 1.0, that multiplies the mission dose before the margin is computed. Report it in the result. Keep every existing behavior when it is 1.0."
+    }
+  ],
+  "notes": [
+    "The power function's method does not change. Its evidence does, so it is re-verified, not rebuilt.",
+    "The link function already takes required_margin_db, so 6 dB is an input, not a code change."
+  ],
+  "usage_changes": [
+    {
+      "action": "replace",
+      "path": "eps.panel1",
+      "part": "DeployablePanel",
+      "name": "panel1",
+      "values": [
+        {
+          "name": "panel_area_m2",
+          "value": 0.06,
+          "source": "user"
+        }
+      ]
+    },
+    {
+      "action": "replace",
+      "path": "eps.panel2",
+      "part": "DeployablePanel",
+      "name": "panel2",
+      "values": [
+        {
+          "name": "panel_area_m2",
+          "value": 0.06,
+          "source": "user"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# Evidence for the radiation function. A person maintains this file.
+# Change it at any time. No code changes and no model call. Then run: python build.py --verify
+
+notes: >
+  Dose-depth points are illustrative values for a 500 km sun-synchronous orbit.
+  Replace them with output from a radiation environment tool for a real program.
+
+# Measures. The function receives these as data on every call.
+measures:
+  - {shield_mm: 1.0, krad_per_year: 12.0}
+  - {shield_mm: 2.0, krad_per_year: 4.0}
+  - {shield_mm: 3.0, krad_per_year: 2.0}
+  - {shield_mm: 5.0, krad_per_year: 1.0}
+
+# Worked cases and test results. The harness turns these into acceptance tests.
+examples:
+  - inputs: {shield_mm: 2.0, life_years: 2, tolerance_krad: 20}
+    expect: {mission_dose_krad: 8.0, rdm: 2.5, passes: true}
+  - inputs: {shield_mm: 2.5, life_years: 2, tolerance_krad: 10}
+    expect: {mission_dose_krad: 6.0, rdm: 1.67, passes: false}
+  - inputs: {shield_mm: 0.5, life_years: 2, tolerance_krad: 20}
+    raises: ValueError

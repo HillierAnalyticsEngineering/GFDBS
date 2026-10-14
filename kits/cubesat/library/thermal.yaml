@@ -1,0 +1,17 @@
+# How to assess thermal, described by a person. No code and no data in here.
+# The data that varies lives in context/thermal.yaml.
+
+name: thermal
+rule_id: V-TEMP
+
+intent: >
+  The spacecraft bulk temperature must stay inside its allowed range in the hot case and in the cold case.
+
+# How an engineer does this by hand today. The agent turns the constants into parameters.
+process_example: |
+  1. Look up the solar flux and the Earth infrared flux for the case in the environment table. Do not guess a case.
+  2. Absorbed heat is absorptivity times solar flux times projected area, plus emissivity times
+     Earth infrared flux times projected area, plus the heat dissipated inside.
+  3. Radiated heat is emissivity times the Stefan-Boltzmann constant times radiating area times temperature to the fourth power.
+  4. Set absorbed equal to radiated and solve for temperature. Convert kelvin to degrees Celsius.
+  5. The design passes when that temperature is between the minimum and maximum allowed.

@@ -1,0 +1,17 @@
+# Evidence for the thermal function. A person maintains this file.
+# Change it at any time. No code changes and no model call. Then run: python build.py --verify
+
+notes: >
+  Fluxes are illustrative bounding cases for low Earth orbit. A single node is a screening model only.
+
+measures:
+  - {case: "hot", solar_w_m2: 1420.0, earth_ir_w_m2: 260.0}
+  - {case: "cold", solar_w_m2: 0.0, earth_ir_w_m2: 220.0}
+
+examples:
+  - inputs: {case: "hot", absorptivity: 0.9, emissivity: 0.85, projected_area_m2: 0.035, radiating_area_m2: 0.14, internal_power_w: 6.0, temp_min_c: -20, temp_max_c: 50}
+    expect: {temperature_c: 31.9, passes: true}
+  - inputs: {case: "cold", absorptivity: 0.9, emissivity: 0.85, projected_area_m2: 0.035, radiating_area_m2: 0.14, internal_power_w: 6.0, temp_min_c: -20, temp_max_c: 50}
+    expect: {temperature_c: -65.5, passes: false}
+  - inputs: {case: "safe mode", absorptivity: 0.9, emissivity: 0.85, projected_area_m2: 0.035, radiating_area_m2: 0.14, internal_power_w: 6.0, temp_min_c: -20, temp_max_c: 50}
+    raises: ValueError

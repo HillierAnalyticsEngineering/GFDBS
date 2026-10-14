@@ -1,0 +1,19 @@
+{
+  "verdict": "rework",
+  "assessment": "All five functions pass their tests and route correctly. The integration pass shows one finding on the described design, V-EOLPWR, which is a property of the design and is correct behavior. One function does not meet a non-functional requirement.",
+  "emergent_effects": [
+    "Transmit power belongs to the link element, and it moves the power margin and the bulk temperature through X-1 and X-2. A link fix by raising power costs power margin.",
+    "Array area belongs to the power element, and it moves mass headroom through X-3. The power shortfall cannot be fixed with area alone without checking mass.",
+    "Shielding thickness improves the radiation margin and costs mass headroom through X-3."
+  ],
+  "redesign": [
+    {
+      "function_id": "cubesat.thermal.bulk",
+      "instruction": "PARAMETERS['internal_power_w'] reads 'Heat dissipated inside the spacecraft'. It does not state the unit. The requirement is that units appear in every parameter description. State W, and add a test that every description states a unit so this cannot regress."
+    }
+  ],
+  "lessons": [
+    "A missing unit in a parameter description passes every numeric test. Check every schema against the non-functional requirements by reading it.",
+    "When the transmitter is an electrical load, a link change is also a power and thermal change. Look at X-1 before approving either."
+  ]
+}

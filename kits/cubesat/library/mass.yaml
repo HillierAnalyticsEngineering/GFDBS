@@ -1,0 +1,15 @@
+# How to assess mass, described by a person. No code and no data in here.
+# The data that varies lives in context/mass.yaml.
+
+name: mass
+rule_id: V-MASSLIM
+
+intent: >
+  The spacecraft mass, with an allowance for growth, must fit the launch limit.
+
+# How an engineer does this by hand today. The agent turns the constants into parameters.
+process_example: |
+  1. Take the current best estimate of dry mass.
+  2. Look up the growth allowance for the design maturity in the allowance table. Do not guess a level.
+  3. Multiply the dry mass by one plus the allowance. Add the propellant, which takes no allowance.
+  4. Headroom is the launch limit minus that total. The design passes when headroom is zero or more.

@@ -1,0 +1,21 @@
+# Evidence for the link function. A person maintains this file.
+# Change it at any time. No code changes and no model call. Then run: python build.py --verify
+
+notes: >
+  Loss points are illustrative for S-band. Replace them with measurements from your ground station.
+
+measures:
+  - {elevation_deg: 5, loss_db: 4.5}
+  - {elevation_deg: 10, loss_db: 3.0}
+  - {elevation_deg: 30, loss_db: 2.0}
+  - {elevation_deg: 90, loss_db: 1.5}
+
+examples:
+  - inputs: {tx_power_w: 2.0, tx_gain_dbi: 6.0, rx_gain_dbi: 35.0, frequency_mhz: 2250.0, slant_range_km: 1695.0, elevation_deg: 10, data_rate_kbps: 1000.0, noise_temp_k: 200.0, required_ebn0_db: 9.6}
+    expect: {ebn0_db: 22.52, margin_db: 12.92, passes: true}
+  - inputs: {tx_power_w: 2.0, tx_gain_dbi: 6.0, rx_gain_dbi: 35.0, frequency_mhz: 2250.0, slant_range_km: 1695.0, elevation_deg: 10, data_rate_kbps: 16000.0, noise_temp_k: 200.0, required_ebn0_db: 9.6}
+    expect: {ebn0_db: 10.48, margin_db: 0.88, passes: false}
+  - inputs: {tx_power_w: 2.0, tx_gain_dbi: 6.0, rx_gain_dbi: 35.0, frequency_mhz: 2250.0, slant_range_km: 930.0, elevation_deg: 30, data_rate_kbps: 1000.0, noise_temp_k: 200.0, required_ebn0_db: 9.6}
+    expect: {ebn0_db: 28.74, margin_db: 19.14, passes: true}
+  - inputs: {tx_power_w: 2.0, tx_gain_dbi: 6.0, rx_gain_dbi: 35.0, frequency_mhz: 2250.0, slant_range_km: 1695.0, elevation_deg: 3, data_rate_kbps: 1000.0, noise_temp_k: 200.0, required_ebn0_db: 9.6}
+    raises: ValueError

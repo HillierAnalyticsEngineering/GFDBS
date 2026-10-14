@@ -1,0 +1,20 @@
+# How to assess link, described by a person. No code and no data in here.
+# The data that varies lives in context/link.yaml.
+
+name: link
+rule_id: V-LINKM
+
+intent: >
+  The payload downlink must close with margin at the lowest elevation the ground station uses.
+
+# How an engineer does this by hand today. The agent turns the constants into parameters.
+process_example: |
+  1. EIRP in dBW is ten times the log of transmit power in watts, plus the transmit antenna gain.
+  2. Free-space path loss in dB is 32.45, plus 20 log of frequency in MHz, plus 20 log of slant range in km.
+  3. Look up the atmospheric and implementation loss for the elevation angle in the loss table.
+     Interpolate linearly between the two nearest rows.
+  4. Carrier to noise density is EIRP, minus path loss, minus that loss, plus ground antenna gain,
+     minus ten times the log of the system noise temperature, plus 228.6.
+  5. Eb/N0 is carrier to noise density minus ten times the log of the data rate in bits per second.
+  6. Margin is Eb/N0 minus the Eb/N0 the modulation needs. The link passes when the margin is at least 3 dB,
+     unless the program sets another value.

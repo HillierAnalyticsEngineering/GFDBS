@@ -1,0 +1,51 @@
+{
+  "summary": "A power bus is a battery pack that rides through eclipse, a power conditioning unit that regulates array output to the load rails, and the harness that carries it. The conditioning efficiency and the harness loss stand between array generation and the load, so the margin should be taken on delivered power.",
+  "parts": [
+    {
+      "name": "BatteryPack",
+      "parent": "PowerBus",
+      "specializes": "",
+      "multiplicity": "1..*",
+      "capability": "power",
+      "description": "Secondary cells that carry the load through eclipse"
+    },
+    {
+      "name": "PowerConditioningUnit",
+      "parent": "PowerBus",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "power",
+      "description": "Regulates array output onto the load rails"
+    },
+    {
+      "name": "Harness",
+      "parent": "PowerBus",
+      "specializes": "",
+      "multiplicity": "1",
+      "capability": "power",
+      "description": "Cabling and connectors between conditioning unit and loads"
+    }
+  ],
+  "attributes": [
+    {
+      "name": "conversion_efficiency",
+      "unit": "ratio",
+      "description": "Efficiency of the power conditioning unit between array and load",
+      "part": "PowerConditioningUnit",
+      "example": 0.95,
+      "rationale": "Typical for a small-satellite MPPT and regulator chain"
+    },
+    {
+      "name": "harness_loss_fraction",
+      "unit": "ratio",
+      "description": "Fraction of conditioned power lost in the harness",
+      "part": "Harness",
+      "example": 0.02,
+      "rationale": "Two percent is usual for a short CubeSat harness"
+    }
+  ],
+  "method_change": "Delivered power is generation times conversion_efficiency times one minus harness_loss_fraction. Take the margin on delivered power, not on generation. Both inputs default to lossless so earlier worked cases still hold.",
+  "notes": [
+    "Battery capacity is not an attribute here: this function assesses orbit-average margin, not eclipse energy balance."
+  ]
+}

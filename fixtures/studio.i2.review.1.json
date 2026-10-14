@@ -1,0 +1,12 @@
+{
+  "verdict": "accept",
+  "assessment": "The radiation function is version 2 and behaves as version 1 when the dose factor is one. The power function was re-verified against the new degradation point and the replaced worked case, with no code change. With deployable panels as the baseline, every requirement is met, including 6 dB of link margin.",
+  "emergent_effects": [
+    "The larger array raised dry mass through X-3 and mass headroom is still positive.",
+    "The dose factor lowers the radiation margin to just above 2. More life or less shielding will fail it."
+  ],
+  "redesign": [],
+  "lessons": [
+    "When evidence changes and the method does not, re-verify the function. Do not rebuild it."
+  ]
+}

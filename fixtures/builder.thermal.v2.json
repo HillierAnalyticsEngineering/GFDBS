@@ -1,0 +1,62 @@
+{
+  "design_notes": "Method: absorbed solar and Earth infrared heat plus internal dissipation equals radiated heat. Solve for one bulk temperature.\nValid range: environment cases named in the measures. A single node hides gradients, so treat the result as a screening value.\nWhat varies per spacecraft: surface finish, areas, internal power, and temperature limits.\nAssumption: the spacecraft is isothermal.",
+  "terms": [
+    {
+      "name": "case",
+      "unit": "name",
+      "description": "Environment case"
+    },
+    {
+      "name": "absorptivity",
+      "unit": "ratio",
+      "description": "Solar absorptivity of the outer surface"
+    },
+    {
+      "name": "emissivity",
+      "unit": "ratio",
+      "description": "Infrared emissivity of the outer surface"
+    },
+    {
+      "name": "projected_area_m2",
+      "unit": "m2",
+      "description": "Area facing the sun and the Earth"
+    },
+    {
+      "name": "radiating_area_m2",
+      "unit": "m2",
+      "description": "Total area that radiates to space"
+    },
+    {
+      "name": "internal_power_w",
+      "unit": "W",
+      "description": "Heat dissipated inside the spacecraft"
+    },
+    {
+      "name": "temp_min_c",
+      "unit": "degC",
+      "description": "Lowest allowed bulk temperature"
+    },
+    {
+      "name": "temp_max_c",
+      "unit": "degC",
+      "description": "Highest allowed bulk temperature"
+    },
+    {
+      "name": "absorbed_w",
+      "unit": "W",
+      "description": "Total heat absorbed and dissipated"
+    },
+    {
+      "name": "temperature_c",
+      "unit": "degC",
+      "description": "Equilibrium bulk temperature"
+    },
+    {
+      "name": "passes",
+      "unit": "boolean",
+      "description": "True when the design meets the requirement"
+    }
+  ],
+  "module_code": "\"\"\"Single-node equilibrium temperature for a small satellite. Standard library only.\"\"\"\n\nRULE_ID = \"V-TEMP\"\nSTEFAN_BOLTZMANN = 5.670374e-8\n\nPARAMETERS = {\n    \"case\": \"Environment case, one of the cases named in the measures. A name with no unit\",\n    \"absorptivity\": \"Solar absorptivity of the outer surface, a ratio from 0 to 1 with no unit\",\n    \"emissivity\": \"Infrared emissivity of the outer surface, a ratio from 0 to 1 with no unit\",\n    \"projected_area_m2\": \"Area facing the sun and the Earth, in m2\",\n    \"radiating_area_m2\": \"Total area that radiates to space, in m2\",\n    \"internal_power_w\": \"Heat dissipated inside the spacecraft, in W\",\n    \"temp_min_c\": \"Lowest allowed bulk temperature, in degC\",\n    \"temp_max_c\": \"Highest allowed bulk temperature, in degC\",\n}\n\n\ndef _require(inputs, names):\n    missing = [name for name in names if name not in inputs]\n    if missing:\n        raise ValueError(f\"missing inputs: {missing}\")\n\n\ndef _environment(case, measures):\n    \"\"\"Fluxes for a named case. An unknown case is an error, never a guess.\"\"\"\n    table = {row[\"case\"]: row for row in measures}\n    if case not in table:\n        raise ValueError(f\"case '{case}' is not in the measures. Known cases: {sorted(table)}\")\n    return table[case]\n\n\ndef evaluate(inputs, measures):\n    \"\"\"Bulk temperature where absorbed and internal heat equal radiated heat.\"\"\"\n    _require(inputs, (\"case\", \"absorptivity\", \"emissivity\", \"projected_area_m2\", \"radiating_area_m2\",\n                      \"internal_power_w\", \"temp_min_c\", \"temp_max_c\"))\n    for name in (\"absorptivity\", \"emissivity\"):\n        if not 0 < inputs[name] <= 1:\n            raise ValueError(f\"{name} must be above 0 and at most 1\")\n    if inputs[\"projected_area_m2\"] <= 0 or inputs[\"radiating_area_m2\"] <= 0 or inputs[\"internal_power_w\"] < 0:\n        raise ValueError(\"areas must be positive, and internal_power_w must not be negative\")\n    env = _environment(inputs[\"case\"], measures)\n    absorbed = (inputs[\"absorptivity\"] * env[\"solar_w_m2\"] * inputs[\"projected_area_m2\"]\n                + inputs[\"emissivity\"] * env[\"earth_ir_w_m2\"] * inputs[\"projected_area_m2\"]\n                + inputs[\"internal_power_w\"])\n    kelvin = (absorbed / (inputs[\"emissivity\"] * STEFAN_BOLTZMANN * inputs[\"radiating_area_m2\"])) ** 0.25\n    celsius = kelvin - 273.15\n    return {\n        \"absorbed_w\": round(absorbed, 2),\n        \"temperature_c\": round(celsius, 1),\n        \"passes\": inputs[\"temp_min_c\"] <= celsius <= inputs[\"temp_max_c\"],\n    }\n\n\ndef check(inputs, measures):\n    \"\"\"Return a finding when the bulk temperature leaves the allowed range.\"\"\"\n    result = evaluate(inputs, measures)\n    if result[\"passes\"]:\n        return []\n    message = (f\"Bulk temperature in the {inputs['case']} case is {result['temperature_c']} degC. \"\n               f\"The allowed range is {inputs['temp_min_c']} to {inputs['temp_max_c']} degC.\")\n    return [{\"rule\": RULE_ID, \"severity\": \"error\", \"domains\": [\"thermal\"], \"message\": message,\n             \"evidence\": {**result, **dict(inputs)}}]\n",
+  "test_code": "import pytest\nfrom solution import PARAMETERS, check, evaluate\n\nCASES = [{\"case\": \"sun\", \"solar_w_m2\": 1000.0, \"earth_ir_w_m2\": 0.0},\n         {\"case\": \"dark\", \"solar_w_m2\": 0.0, \"earth_ir_w_m2\": 0.0}]\nBASE = {\"case\": \"sun\", \"absorptivity\": 1.0, \"emissivity\": 1.0, \"projected_area_m2\": 1.0, \"radiating_area_m2\": 4.0,\n        \"internal_power_w\": 0.0, \"temp_min_c\": -40, \"temp_max_c\": 60}\n\n\ndef test_black_sphere_balance():\n    expected_k = (1000.0 / (5.670374e-8 * 4.0)) ** 0.25\n    assert evaluate(BASE, CASES)[\"temperature_c\"] == pytest.approx(expected_k - 273.15, abs=0.1)\n\n\ndef test_internal_power_warms_it():\n    assert evaluate({**BASE, \"internal_power_w\": 100.0}, CASES)[\"temperature_c\"] > evaluate(BASE, CASES)[\"temperature_c\"]\n\n\ndef test_more_radiating_area_cools_it():\n    assert evaluate({**BASE, \"radiating_area_m2\": 8.0}, CASES)[\"temperature_c\"] < evaluate(BASE, CASES)[\"temperature_c\"]\n\n\ndef test_unknown_case_is_an_error():\n    with pytest.raises(ValueError):\n        evaluate({**BASE, \"case\": \"safe mode\"}, CASES)\n\n\ndef test_too_cold_gives_a_finding():\n    cold = {**BASE, \"case\": \"dark\", \"internal_power_w\": 1.0}\n    assert evaluate(cold, CASES)[\"passes\"] is False\n    assert check(cold, CASES)[0][\"rule\"] == \"V-TEMP\"\n\n\ndef test_zero_emissivity_rejected():\n    with pytest.raises(ValueError):\n        evaluate({**BASE, \"emissivity\": 0.0}, CASES)\n\n\ndef test_every_parameter_states_a_unit():\n    assert all((\" in \" in d) or (\"no unit\" in d) for d in PARAMETERS.values())\n"
+}

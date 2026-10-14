@@ -1,0 +1,325 @@
+{
+  "baseline": {
+    "name": "baseline",
+    "description": "The CubeSat as requested: two body-mounted panels of 0.03 m2 each, a 2 W S-band transmitter at 1 Mbps, 500 km, two years.",
+    "values": [
+      {
+        "name": "cell_efficiency",
+        "value": 0.29,
+        "source": "user"
+      },
+      {
+        "name": "tx_power_w",
+        "value": 2.0,
+        "source": "user"
+      },
+      {
+        "name": "data_rate_kbps",
+        "value": 1000,
+        "source": "user"
+      },
+      {
+        "name": "life_years",
+        "value": 2,
+        "source": "user"
+      },
+      {
+        "name": "launch_limit_g",
+        "value": 5000,
+        "source": "user"
+      },
+      {
+        "name": "eps.panel1.panel_area_m2",
+        "value": 0.03,
+        "source": "user"
+      },
+      {
+        "name": "eps.panel2.panel_area_m2",
+        "value": 0.03,
+        "source": "user"
+      }
+    ],
+    "usages": [
+      {
+        "path": "eps",
+        "part": "ElectricalPowerSubsystem"
+      },
+      {
+        "path": "eps.panel1",
+        "part": "BodyMountedPanel"
+      },
+      {
+        "path": "eps.panel2",
+        "part": "BodyMountedPanel"
+      },
+      {
+        "path": "eps.powerBus",
+        "part": "PowerBus"
+      },
+      {
+        "path": "radiationEnvironment",
+        "part": "RadiationEnvironment"
+      },
+      {
+        "path": "radiationEnvironment.shielding",
+        "part": "Shielding"
+      },
+      {
+        "path": "radiationEnvironment.electronicsStack",
+        "part": "ElectronicsStack"
+      },
+      {
+        "path": "massProperties",
+        "part": "MassProperties"
+      },
+      {
+        "path": "massProperties.structure",
+        "part": "Structure"
+      },
+      {
+        "path": "massProperties.propellant",
+        "part": "Propellant"
+      },
+      {
+        "path": "communicationsSubsystem",
+        "part": "CommunicationsSubsystem"
+      },
+      {
+        "path": "communicationsSubsystem.transmitter",
+        "part": "Transmitter"
+      },
+      {
+        "path": "communicationsSubsystem.antenna",
+        "part": "Antenna"
+      },
+      {
+        "path": "communicationsSubsystem.groundStation",
+        "part": "GroundStation"
+      },
+      {
+        "path": "thermalControl",
+        "part": "ThermalControl"
+      },
+      {
+        "path": "thermalControl.externalSurface",
+        "part": "ExternalSurface"
+      },
+      {
+        "path": "thermalControl.operatingLimits",
+        "part": "OperatingLimits"
+      }
+    ]
+  },
+  "alternatives": [
+    {
+      "name": "alt-deployable-panels",
+      "description": "Two deployable panels of 0.06 m2 each replace the body-mounted ones. Hinges and hold-downs add 150 g to the bus.",
+      "values": [
+        {
+          "name": "bus_dry_mass_g",
+          "value": 3450,
+          "source": "ai"
+        },
+        {
+          "name": "eps.panel1.panel_area_m2",
+          "value": 0.06,
+          "source": "ai"
+        },
+        {
+          "name": "eps.panel2.panel_area_m2",
+          "value": 0.06,
+          "source": "ai"
+        }
+      ],
+      "usages": [
+        {
+          "path": "eps",
+          "part": "ElectricalPowerSubsystem"
+        },
+        {
+          "path": "eps.panel1",
+          "part": "DeployablePanel"
+        },
+        {
+          "path": "eps.panel2",
+          "part": "DeployablePanel"
+        },
+        {
+          "path": "eps.powerBus",
+          "part": "PowerBus"
+        },
+        {
+          "path": "radiationEnvironment",
+          "part": "RadiationEnvironment"
+        },
+        {
+          "path": "radiationEnvironment.shielding",
+          "part": "Shielding"
+        },
+        {
+          "path": "radiationEnvironment.electronicsStack",
+          "part": "ElectronicsStack"
+        },
+        {
+          "path": "massProperties",
+          "part": "MassProperties"
+        },
+        {
+          "path": "massProperties.structure",
+          "part": "Structure"
+        },
+        {
+          "path": "massProperties.propellant",
+          "part": "Propellant"
+        },
+        {
+          "path": "communicationsSubsystem",
+          "part": "CommunicationsSubsystem"
+        },
+        {
+          "path": "communicationsSubsystem.transmitter",
+          "part": "Transmitter"
+        },
+        {
+          "path": "communicationsSubsystem.antenna",
+          "part": "Antenna"
+        },
+        {
+          "path": "communicationsSubsystem.groundStation",
+          "part": "GroundStation"
+        },
+        {
+          "path": "thermalControl",
+          "part": "ThermalControl"
+        },
+        {
+          "path": "thermalControl.externalSurface",
+          "part": "ExternalSurface"
+        },
+        {
+          "path": "thermalControl.operatingLimits",
+          "part": "OperatingLimits"
+        }
+      ]
+    },
+    {
+      "name": "alt-low-duty-transmitter",
+      "description": "Keep the body-mounted panels and transmit half as often, which lowers the load through exchange X-1.",
+      "values": [
+        {
+          "name": "tx_duty_cycle",
+          "value": 0.07,
+          "source": "ai"
+        },
+        {
+          "name": "bus_load_w",
+          "value": 4.9,
+          "source": "ai"
+        }
+      ],
+      "usages": []
+    },
+    {
+      "name": "alt-five-year",
+      "description": "Deployable panels, one more millimeter of shielding, and a five-year life.",
+      "values": [
+        {
+          "name": "bus_dry_mass_g",
+          "value": 3450,
+          "source": "ai"
+        },
+        {
+          "name": "shield_mm",
+          "value": 3.0,
+          "source": "ai"
+        },
+        {
+          "name": "life_years",
+          "value": 5,
+          "source": "ai"
+        },
+        {
+          "name": "eps.panel1.panel_area_m2",
+          "value": 0.06,
+          "source": "ai"
+        },
+        {
+          "name": "eps.panel2.panel_area_m2",
+          "value": 0.06,
+          "source": "ai"
+        }
+      ],
+      "usages": [
+        {
+          "path": "eps",
+          "part": "ElectricalPowerSubsystem"
+        },
+        {
+          "path": "eps.panel1",
+          "part": "DeployablePanel"
+        },
+        {
+          "path": "eps.panel2",
+          "part": "DeployablePanel"
+        },
+        {
+          "path": "eps.powerBus",
+          "part": "PowerBus"
+        },
+        {
+          "path": "radiationEnvironment",
+          "part": "RadiationEnvironment"
+        },
+        {
+          "path": "radiationEnvironment.shielding",
+          "part": "Shielding"
+        },
+        {
+          "path": "radiationEnvironment.electronicsStack",
+          "part": "ElectronicsStack"
+        },
+        {
+          "path": "massProperties",
+          "part": "MassProperties"
+        },
+        {
+          "path": "massProperties.structure",
+          "part": "Structure"
+        },
+        {
+          "path": "massProperties.propellant",
+          "part": "Propellant"
+        },
+        {
+          "path": "communicationsSubsystem",
+          "part": "CommunicationsSubsystem"
+        },
+        {
+          "path": "communicationsSubsystem.transmitter",
+          "part": "Transmitter"
+        },
+        {
+          "path": "communicationsSubsystem.antenna",
+          "part": "Antenna"
+        },
+        {
+          "path": "communicationsSubsystem.groundStation",
+          "part": "GroundStation"
+        },
+        {
+          "path": "thermalControl",
+          "part": "ThermalControl"
+        },
+        {
+          "path": "thermalControl.externalSurface",
+          "part": "ExternalSurface"
+        },
+        {
+          "path": "thermalControl.operatingLimits",
+          "part": "OperatingLimits"
+        }
+      ]
+    }
+  ],
+  "notes": "The baseline fails the power margin. The first alternative fixes it with area. The second tries to fix it without new hardware."
+}

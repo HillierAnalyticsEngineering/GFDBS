@@ -1,0 +1,17 @@
+# How to assess end-of-life power margin, described by a person. No code and no data in here.
+# The data that varies lives in context/power.yaml.
+
+name: power
+rule_id: V-EOLPWR
+
+intent: >
+  The solar array must cover the orbit-average load with margin at the end of the design life.
+
+process_example: |
+  1. Sunlit generation is 1361 W per square meter, times the array area, times the cell efficiency,
+     times a pointing factor for the average angle to the sun.
+  2. Find the array's relative output at the design life in the degradation table.
+     Interpolate linearly between the two nearest rows. Multiply.
+  3. Multiply by the sunlit fraction of the orbit to get orbit-average generation.
+  4. Margin is generation divided by the orbit-average load, minus one.
+  5. The design passes when the margin is at least 0.10, unless the program sets another value.

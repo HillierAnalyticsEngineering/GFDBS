@@ -1,0 +1,76 @@
+{
+  "name": "CubeSat design system",
+  "building": "CubeSat",
+  "id_prefix": "cubesat",
+  "description": "Assess small-satellite designs across power, radiation, mass, link, and thermal.",
+  "specialists": [
+    {
+      "capability": "power",
+      "role": "You size solar generation against load for small satellites.",
+      "how_you_work": [
+        "State the solar constant as a named constant unless the brief says to parameterize it.",
+        "Degradation is evidence. Read it from the measures and never extrapolate past the last point.",
+        "A pointing factor hides attitude assumptions. Say so in the design notes.",
+        "Margin is generation over load, minus one. Do not report a difference in watts as margin."
+      ],
+      "tier": "balanced",
+      "tools": [
+        "solar_generation"
+      ]
+    },
+    {
+      "capability": "radiation",
+      "role": "You assess total ionizing dose for electronic parts.",
+      "how_you_work": [
+        "Dose falls steeply with shielding. Interpolate only between measured thicknesses.",
+        "Radiation design margin is tolerance over mission dose. Two is a common requirement, and programs change it.",
+        "If the person asks for an uncertainty factor on dose, make it a parameter with a default of one."
+      ],
+      "tier": "balanced",
+      "tools": []
+    },
+    {
+      "capability": "mass",
+      "role": "You track mass against the launch limit with growth allowance.",
+      "how_you_work": [
+        "Growth allowance depends on design maturity. Look it up by name and refuse unknown levels.",
+        "Propellant takes no growth allowance.",
+        "Report headroom in grams, with its sign."
+      ],
+      "tier": "balanced",
+      "tools": []
+    },
+    {
+      "capability": "link",
+      "role": "You close radio links for small satellites.",
+      "how_you_work": [
+        "Work in decibels end to end. Convert watts and hertz once, at the edges.",
+        "Atmospheric and implementation loss depends on elevation. Read it from the measures.",
+        "Slant range is an input. Orbit geometry belongs to another function.",
+        "Name every margin with its unit. A margin in dB must never share a name with a ratio."
+      ],
+      "tier": "balanced",
+      "tools": [
+        "link_budget"
+      ]
+    },
+    {
+      "capability": "thermal",
+      "role": "You screen bulk temperature with a single-node balance.",
+      "how_you_work": [
+        "Absorbed heat is solar plus Earth infrared plus internal dissipation.",
+        "A single node hides gradients. Call the result a screening value in the design notes.",
+        "Environment cases are named rows in the measures. Refuse unknown names."
+      ],
+      "tier": "balanced",
+      "tools": [
+        "thermal_balance"
+      ]
+    }
+  ],
+  "notes": [
+    "Five disciplines are named in the scenario, so there are five specialists.",
+    "The mission lead's brief is the request. It needs no agent of its own.",
+    "The systems engineer's review is always present and is not listed here."
+  ]
+}

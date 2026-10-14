@@ -1,0 +1,40 @@
+# A blank harness definition. Use it to build a design system for anything.
+# Add specialist agents as you learn which elements your system needs. Without them, a generic specialist is used.
+# Put how-it-is-done descriptions in library/ and measures and worked cases in evidence/, one file per capability.
+
+name: Design system
+building: system
+id_prefix: sys
+description: A design system for whatever the request describes.
+agents:
+  parameterizer:
+    tier: balanced
+  systems_engineer:
+    tier: deep
+    instructions: agents/systems_engineer.md
+    memory: true
+  specialists: []
+  fallback:
+    instructions: agents/generic.md
+    tier: balanced
+  triage:
+    tier: balanced
+  inputs:
+    tier: balanced
+review_rounds: 2
+structure_depth: 3      # how many levels of parts below the whole a decomposition may go. A drill-down stops here too
+architecture:
+- One Python module. Standard library only.
+- 'One entry point: evaluate(inputs: dict, measures: list[dict]) -> dict. The result includes a boolean named passes.'
+- 'One rule: check(inputs: dict, measures: list[dict]) -> list of findings. A finding is a dict with rule, severity,
+  domains, message, evidence.'
+- 'One schema: PARAMETERS, a dict of input name to a one-line description that states the unit.'
+- Measures are data. They are passed in. Never copy them into the code.
+- 'Shared vocabulary: every input and output name goes into one shared dictionary with its unit. A name means one
+  thing across the whole build system.'
+non_functional:
+- Deterministic. The same inputs give the same outputs.
+- No extrapolation. Raise ValueError outside the measured range.
+- Units appear in every parameter description.
+- Every finding carries the numbers that justify it as evidence.
+- A reader can follow the function in one sitting.
