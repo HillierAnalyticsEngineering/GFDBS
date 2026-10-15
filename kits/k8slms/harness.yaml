@@ -1,0 +1,66 @@
+# A harness definition, written by GF System Design Studio. Edit it here or in the studio's Harness view.
+# It says what is being built, which agents build it, and the rules every generated function must follow.
+
+name: Kubernetes LMS platform design system
+building: LMS cluster deployment
+id_prefix: k8slms
+description: Assesses a Kubernetes-based learning management system deployment. It covers the LMS app with a payment
+  sidecar, Judge0 code execution, a learning record store, RDBMS, content cache and blob storage, SAML federation
+  with optional Keycloak, PKI between nodes, and cost management. The checks are workload placement and capacity,
+  persistent storage, high availability and fault tolerance, identity and PKI security, code-execution isolation,
+  and cost.
+agents:
+  parameterizer:
+    tier: balanced
+  systems_engineer:
+    tier: deep
+    instructions: agents/systems_engineer.md
+    memory: true
+  specialists:
+  - capability: scheduling
+    instructions: agents/scheduling.md
+    tier: balanced
+    tools: []
+  - capability: storage
+    instructions: agents/storage.md
+    tier: balanced
+    tools: []
+  - capability: availability
+    instructions: agents/availability.md
+    tier: deep
+    tools: []
+  - capability: security
+    instructions: agents/security.md
+    tier: deep
+    tools: []
+  - capability: sandbox
+    instructions: agents/sandbox.md
+    tier: balanced
+    tools: []
+  - capability: cost
+    instructions: agents/cost.md
+    tier: fast
+    tools: []
+  fallback:
+    instructions: agents/generic.md
+    tier: balanced
+  triage:
+    tier: balanced
+  inputs:
+    tier: balanced
+review_rounds: 2
+architecture:
+- One Python module. Standard library only, plus the studio's toolbox.
+- 'One entry point: evaluate(inputs: dict, measures: list[dict]) -> dict. The result includes a boolean named passes.'
+- 'One rule: check(inputs: dict, measures: list[dict]) -> list of findings. A finding is a dict with rule, severity,
+  domains, message, evidence.'
+- 'One schema: PARAMETERS, a dict of input name to a one-line description that states the unit.'
+- Measures are data. They are passed in. Never copy them into the code.
+- 'Shared vocabulary: every input and output name goes into one shared dictionary with its unit. A name means one
+  thing across the whole build system.'
+non_functional:
+- Deterministic. The same inputs give the same outputs.
+- No extrapolation. Raise ValueError outside the measured range.
+- Units appear in every parameter description.
+- Every finding carries the numbers that justify it as evidence.
+- A reader can follow the function in one sitting.
